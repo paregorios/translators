@@ -65,6 +65,15 @@ function pullISBN(text) {
 	}
 }
 
+// OCLC extraction
+function pullOCLC(text) {
+	var pullRe = /\(OCoLC\)([0-9]+)/;
+	var m = pullRe.exec(text);
+	if(m) {
+		return "OCLC: " + m[1];
+	}
+}
+
 // corporate author extraction
 function corpAuthor(author) {
 	return {lastName:author, fieldMode:true};
@@ -426,6 +435,8 @@ record.prototype.translate = function(item) {
 		this._associateDBField(item, "020", "a", "ISBN", pullISBN);
 		// Extract ISSNs
 		this._associateDBField(item, "022", "a", "ISSN", pullISBN);
+		// Extract OCLCs
+		this._associateDBField(item, "035", "a", "extra", pullOCLC)
 		// Extract creators
 		this._associateDBField(item, "100", "a", "creator", author, "author", true);
 		this._associateDBField(item, "110", "a", "creator", corpAuthor, "author");
