@@ -944,6 +944,9 @@ function processIdentifiers(contextElement, newItem) {
 	if(issns.length) newItem.ISSN = issns.join(", ");
 	
 	newItem.DOI = ZU.xpathText(contextElement, 'm:identifier[@type="doi"]', xns);
+	var oclc = ZU.xpathText(contextElement, 'm:identifier[@type="oclc"]', xns);
+	if(oclc) newItem.extra = "oclc:" + oclc;
+
 }
 
 function getFirstResult(contextNode, xpaths) {
@@ -1132,7 +1135,8 @@ function doImport() {
 		newItem.callNumber = ZU.xpathText(modsElement, 'm:classification', xns);
 		
 		// archiveLocation
-		newItem.archiveLocation = ZU.xpathText(modsElement, './/m:location/m:physicalLocation', xns, "; ");
+		newItem.archive = ZU.xpathText(modsElement, './/m:location/m:physicalLocation', xns, "; ");
+		newItem.archiveLocation = ZU.xpathText(modsElement, './/m:location/m:holdingSimple/m:copyInformation/m:subLocation', xns, "; ");
 
 		// attachments and url
 		var urlNodes = ZU.xpath(modsElement, 'm:location/m:url', xns);
