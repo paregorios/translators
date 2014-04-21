@@ -945,7 +945,14 @@ function processIdentifiers(contextElement, newItem) {
 	
 	newItem.DOI = ZU.xpathText(contextElement, 'm:identifier[@type="doi"]', xns);
 	var oclc = ZU.xpathText(contextElement, 'm:identifier[@type="oclc"]', xns);
-	if(oclc) newItem.extra = "oclc:" + oclc;
+	var extras = [];
+	if(typeof newItem.extra !== "undefined")
+	{
+		if(newItem.extra.length) extras.push(newItem.extra);
+	}
+	if(oclc) extras.push("oclc:" + oclc);
+	if(extras.length) newItem.extra = extras.join(", ");
+
 
 }
 
@@ -987,7 +994,16 @@ function doImport() {
 		// source
 		newItem.source = ZU.xpathText(modsElement, 'm:recordInfo/m:recordContentSource', xns);
 		// accessionNumber
-		newItem.accessionNumber = ZU.xpathText(modsElement, 'm:recordInfo/m:recordIdentifier', xns);
+		var bsn = ZU.xpathText(modsElement, 'm:recordInfo/m:recordIdentifier', xns);
+		newItem.accessionNumber = bsn;
+		var extras = [];
+		if(typeof newItem.extra !== "undefined")
+		{
+			if(newItem.extra.length) extras.push(newItem.extra);
+		}
+		if(bsn) extras.push("bsn:" + bsn);
+		if(extras.length) newItem.extra = extras.join(", ");
+
 		// rights
 		newItem.rights = ZU.xpathText(modsElement, 'm:accessCondition', xns);
 		
