@@ -74,6 +74,11 @@ function pullOCLC(text) {
 	}
 }
 
+// language extraction
+function pullLanguage(text) {
+	return text
+}
+
 // corporate author extraction
 function corpAuthor(author) {
 	return {lastName:author, fieldMode:true};
@@ -437,6 +442,8 @@ record.prototype.translate = function(item) {
 		this._associateDBField(item, "022", "a", "ISSN", pullISBN);
 		// Extract OCLCs
 		this._associateDBField(item, "035", "a", "extra", pullOCLC)
+		// Extract languages
+		this._associateDBField(item, "041", "a", "language", pullLanguage)
 		// Extract creators
 		this._associateDBField(item, "100", "a", "creator", author, "author", true);
 		this._associateDBField(item, "110", "a", "creator", corpAuthor, "author");
