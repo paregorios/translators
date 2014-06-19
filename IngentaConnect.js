@@ -9,7 +9,7 @@
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2013-12-12 12:55:31"
+	"lastUpdated": "2014-05-09 23:09:37"
 }
 
 function detectWeb(doc, url) {
@@ -57,8 +57,13 @@ function scrape(newDoc, url){
 		if (newDoc.evaluate('//div[@id="abstract"]', newDoc, null, XPathResult.ANY_TYPE, null).iterateNext()) {
 			abs = Zotero.Utilities.trimInternal(newDoc.evaluate('//div[@id="abstract"]', newDoc, null, XPathResult.ANY_TYPE, null).iterateNext().textContent).substr(10);
 		}
-		if (newDoc.evaluate('//div[@id="purchaseexpand"]//a[contains(@title,"PDF download")]', newDoc, null, XPathResult.ANY_TYPE, null).iterateNext()) {
-			pdf = newDoc.evaluate('//div[@id="purchaseexpand"]//a[contains(@title,"PDF download")]', newDoc, null, XPathResult.ANY_TYPE, null).iterateNext().href;
+		var articleID = ZU.xpathText(newDoc, '/html/head/meta[@name="IC.identifier"]/@content');
+		if(articleID) {
+			pdf = '/search/download?pub=infobike://' + articleID + '&mimetype=application/pdf';
+		} else {
+			pdf = url.replace(/[?&#].*/, '')
+				.replace('/content/', '/search/download?pub=infobike://')
+				+ '&mimetype=application/pdf';
 		}
 		if (newDoc.evaluate('//div[@id="info"]/p[1]/a', newDoc, null, XPathResult.ANY_TYPE, null).iterateNext()) {
 			var keywords = newDoc.evaluate('//div[@id="info"]/p[1]/a', newDoc, null, XPathResult.ANY_TYPE, null);
@@ -98,48 +103,103 @@ function scrape(newDoc, url){
 var testCases = [
 	{
 		"type": "web",
-		"url": "http://www.ingentaconnect.com/content/klu/10436/2007/00000003/00000001/00000064",
+		"url": "http://www.ingentaconnect.com/search;jsessionid=296g394n0j012.alice?form_name=quicksearch&ie=%E0%A5%B0&value1=argentina&option1=tka&x=0&y=0",
+		"items": "multiple"
+	},
+	{
+		"type": "web",
+		"url": "http://www.ingentaconnect.com/content/tpp/ep/2014/00000010/00000001/art00001",
 		"items": [
 			{
 				"itemType": "journalArticle",
 				"creators": [
 					{
-						"lastName": "Calomiris",
-						"firstName": "Charles",
+						"lastName": "Gough",
+						"firstName": "David",
+						"creatorType": "author"
+					},
+					{
+						"lastName": "Boaz",
+						"firstName": "Annette",
 						"creatorType": "author"
 					}
 				],
 				"notes": [],
-				"tags": [
-					"Argentina",
-					"Devaluation",
-					"E42",
-					"F30",
-					"G3",
-					"G32",
-					"K2",
-					"Pesification",
-					"Redenomination"
-				],
+				"tags": [],
 				"seeAlso": [],
-				"attachments": [],
-				"title": "Devaluation with contract redenomination in Argentina",
-				"journalAbbreviation": "Annals of Finance",
-				"volume": "3",
+				"attachments": [
+					{
+						"title": "IngentaConnect Full Text PDF",
+						"mimeType": "application/pdf"
+					}
+				],
+				"journalAbbreviation": "Evidence & Policy: A Journal of Research, Debate and Practice",
 				"issue": "1",
-				"pages": "155-192",
-				"abstractNote": "This study offers the first empirical microeconomic analysis of the effectiveness of dollar debt and contract redenomination policies to mitigate adverse financial and relative price consequences from a large devaluation. An analysis of Argentina’s policy of devaluation with redenomination in 2002, in contrast to Mexico’s policy of devaluation without debt redenomination in 1994–1995, shows that devaluation benefited tradables firms, and that dollar debt redenomination in Argentina benefited high-dollar debtors, as shown in these firms’ investment behavior, especially non-tradables firms whose revenues in dollar terms were adversely affected by devaluation. That investment behavior contrasts with the experience of Mexican firms in the aftermath of Mexico’s large devaluation, in which non-tradables producers with high dollar debt displayed significant relative reductions in investment. Stock return reactions to Argentine debt redenomination indicate large, positive, unanticipated effects on high-dollar debtors from debt redenomination. Energy concession contract redenomination likewise increased investment by high energy users in Argentina, and that benefit was apparent also in positive stock returns of those firms.",
-				"DOI": "10.1007/s10436-006-0064-9",
-				"date": "2007",
-				"publicationTitle": "Annals of Finance",
-				"libraryCatalog": "IngentaConnect"
+				"DOI": "10.1332/174426413X13836441441630",
+				"libraryCatalog": "IngentaConnect",
+				"title": "Strategies for enabling the use of research evidence",
+				"volume": "10",
+				"pages": "3-4",
+				"date": "2014",
+				"publicationTitle": "Evidence & Policy: A Journal of Research, Debate and Practice"
 			}
 		]
 	},
 	{
 		"type": "web",
-		"url": "http://www.ingentaconnect.com/search;jsessionid=296g394n0j012.alice?form_name=quicksearch&ie=%E0%A5%B0&value1=argentina&option1=tka&x=0&y=0",
-		"items": "multiple"
+		"url": "http://www.ingentaconnect.com/search/article?option1=title&value1=credibility+associated+with+how+often+they+present+research+evidence+to+public+or+partly+government-owned+organisations&sortDescending=true&sortField=default&pageSize=10&index=1",
+		"items": [
+			{
+				"itemType": "journalArticle",
+				"creators": [
+					{
+						"lastName": "Ouimet",
+						"firstName": "Mathieu",
+						"creatorType": "author"
+					},
+					{
+						"lastName": "Bédard",
+						"firstName": "Pierre-Olivier",
+						"creatorType": "author"
+					},
+					{
+						"lastName": "Léon",
+						"firstName": "Grégory",
+						"creatorType": "author"
+					},
+					{
+						"lastName": "Dagenais",
+						"firstName": "Christian",
+						"creatorType": "author"
+					}
+				],
+				"notes": [],
+				"tags": [
+					"Credibility",
+					"Cross-Sectional Survey",
+					"Faculty Members",
+					"Knowledge Transfer"
+				],
+				"seeAlso": [],
+				"attachments": [
+					{
+						"title": "IngentaConnect Full Text PDF",
+						"mimeType": "application/pdf"
+					}
+				],
+				"journalAbbreviation": "Evidence & Policy: A Journal of Research, Debate and Practice",
+				"issue": "1",
+				"abstractNote": "This study provides an empirical test of the assumption that the credibility of the messenger is one of the factors that influence knowledge mobilisation among policy makers. This general hypothesis was tested using a database of 321 social scientists from the province of Quebec that combines survey and bibliometric data. A regression model was used to study the association between indicators of faculty members' credibility and the number of times they have presented research evidence to public or partly government-owned organisations over an 18-month period. Overall, empirical results provide new evidence supporting the credibility hypothesis.",
+				"DOI": "10.1332/174426413X662699",
+				"libraryCatalog": "IngentaConnect",
+				"shortTitle": "Are indicators of faculty members' credibility associated with how often they present research evidence to public or partly government-owned organisations?",
+				"title": "Are indicators of faculty members' credibility associated with how often they present research evidence to public or partly government-owned organisations? A cross-sectional survey",
+				"volume": "10",
+				"pages": "5-27",
+				"date": "2014",
+				"publicationTitle": "Evidence & Policy: A Journal of Research, Debate and Practice"
+			}
+		]
 	}
 ]
 /** END TEST CASES **/

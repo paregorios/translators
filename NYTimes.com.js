@@ -9,7 +9,7 @@
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsv",
-	"lastUpdated": "2013-07-01 13:02:02"
+	"lastUpdated": "2014-06-11 21:54:15"
 }
 
 function detectWeb(doc, url) {
@@ -177,7 +177,7 @@ function scrape(doc, url) {
 		newItem.url = newItem.url.replace(/\?.+/, '');
 	}
 	//	get pdf for archive articles - make sure we don't go here if we're getting multiples or regular items
-	var pdfxpath = '//div[@class="articleAccess"]/p[@class="button"]/a[contains(@href, "/pdf")]/@href'
+	var pdfxpath = '//div[@id="articleAccess"]//span[@class="downloadPDF"]/a[contains(@href, "/pdf")]/@href'
 	if (!m && ZU.xpathText(doc, pdfxpath) != null) {
 		var pdflink = ZU.xpathText(doc, pdfxpath)
 		Zotero.Utilities.doGet(pdflink, function (text) {
@@ -202,7 +202,7 @@ function scrape(doc, url) {
 function doWeb(doc, url) {
 	var searchResults = doc.evaluate('//div[@id="search_results"] |//div[@id="searchResults"]| //div[@id="srchContent"]', doc, null, XPathResult.ANY_TYPE, null).iterateNext();
 	if (searchResults) {
-		var items = Zotero.Utilities.getItemArray(doc, searchResults, '^http://(?:select\.|www\.)nytimes.com/.*\.html(\\?|$)');
+		var items = Zotero.Utilities.getItemArray(doc, searchResults, '^https?://(?:select\.|www\.)nytimes.com/.*\.html(\\?|$)');
 
 		Zotero.selectItems(items, function (items) {
 			if (!items) return true;

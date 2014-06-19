@@ -2,14 +2,14 @@
 	"translatorID": "186efdd2-3621-4703-aac6-3b5e286bdd86",
 	"label": "Hindawi Publishers",
 	"creator": "Sebastian Karcher",
-	"target": "http://www.hindawi.com/journals/",
+	"target": "http://www.hindawi.com/(journals|search)/",
 	"minVersion": "3.0",
 	"maxVersion": "",
 	"priority": 100,
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsbv",
-	"lastUpdated": "2013-05-15 20:05:47"
+	"lastUpdated": "2014-05-01 00:37:52"
 }
 
 /*
@@ -38,7 +38,7 @@ function detectWeb(doc,url) {
 		return "journalArticle";
 	}
 			
-	if (url.indexOf("search.aspx?")!=-1 || url.indexOf("/journals/")!=-1) {
+	if (url.indexOf("/search/")!=-1 || url.indexOf("/journals/")!=-1) {
 		multxpath = '//x:div[@class="middle_content"]/x:ul/x:li/x:a[contains(@href, "/journals/")]|\
 		//x:div[contains(@id, "SearchResult")]/x:ul/x:li/x:a[contains(@href, "/journals/")]'
 	
@@ -76,6 +76,10 @@ function doWeb(doc,url)
 		translator.setTranslator("951c027d-74ac-47d4-a107-9c3069ab7b48");
 		translator.setDocument(doc);
 		translator.setHandler('itemDone', function(obj, item) {
+			if(!item.pages && item.DOI) {
+				// use article ID as a page (seems to be the last part of URL/DOI)
+				item.pages = 'e' + item.DOI.substr(item.DOI.lastIndexOf('/') + 1);
+			}
 			item.extra = "";
 			item.complete();
 		});
@@ -84,11 +88,6 @@ function doWeb(doc,url)
 }
 /** BEGIN TEST CASES **/
 var testCases = [
-	{
-		"type": "web",
-		"url": "http://www.hindawi.com/search.aspx?startindex=1&field0=9&q0=data",
-		"items": "multiple"
-	},
 	{
 		"type": "web",
 		"url": "http://www.hindawi.com/journals/jo/2012/",
@@ -158,9 +157,15 @@ var testCases = [
 				"title": "MammaPrint Feasibility in a Large Tertiary Urban Medical Center: An Initial Experience",
 				"publicationTitle": "Scientifica",
 				"volume": "2012",
-				"date": "2012/12/31"
+				"date": "2012/12/31",
+				"pages": "e942507"
 			}
 		]
+	},
+	{
+		"type": "web",
+		"url": "http://www.hindawi.com/search/all/data/",
+		"items": "multiple"
 	}
 ]
 /** END TEST CASES **/

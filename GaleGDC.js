@@ -9,7 +9,7 @@
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsb",
-	"lastUpdated": "2013-12-10 17:15:41"
+	"lastUpdated": "2014-04-14 17:15:41"
 }
 
 /*
@@ -54,6 +54,8 @@ var GaleZotero = (function() {
 			result = 'film';
 		} else if (isNewspaperArticle(url)) {
 			result = 'newspaperArticle';
+		} else if (isMagazineArticle(url)) {
+			result = 'magazineArticle';
 		} else if (isMultiple(doc, url)) {
 			result = 'multiple';
 		} else if (isDocument(url)) {
@@ -126,6 +128,10 @@ var GaleZotero = (function() {
 
 	function isNewspaperArticle(url) {
 		return (/NewspapersDetails/).test(url);
+	}
+	
+	function isMagazineArticle(url) {
+		return (/MagazinesDetails/).test(url);
 	}
 
 	function isMap(url) {

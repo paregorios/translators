@@ -9,7 +9,7 @@
 	"priority": 90,
 	"inRepository": true,
 	"browserSupport": "gcsv",
-	"lastUpdated": "2013-07-31 20:05:00"
+	"lastUpdated": "2014-04-27 21:00:00"
 }
 
 /* CrossRef uses unixref; documentation at http://www.crossref.org/schema/documentation/unixref1.0/unixref.html */
@@ -70,13 +70,15 @@ function parseCreators(node, item, typeOverrideMap) {
 		var creator = {};
 		
 		var role = creatorXML.getAttribute("contributor_role");
-		if(typeOverrideMap && typeOverrideMap[role]) {
+		if(typeOverrideMap && typeOverrideMap[role] !== undefined) {
 			creator.creatorType = typeOverrideMap[role];
 		} else if(role === "author" || role === "editor" || role === "translator") {
 			creator.creatorType = role;
 		} else {
 			creator.creatorType = "contributor";
 		}
+		
+		if(!creator.creatorType) continue;
 		
 		if(creatorXML.nodeName === "organization") {
 			creator.fieldMode = 1;
@@ -143,15 +145,22 @@ function processCrossRef(xmlOutput) {
 		// Sometimes the <issue> tag is not nested inside the volume tag; see 10.1007/BF00938486
 		if (!item.issue)
 			item.issue = ZU.xpathText(itemXML, 'c:journal_issue/c:issue', ns);
-   } else if((itemXML = ZU.xpath(doiRecord, 'c:crossref/c:report-paper', ns)).length) {
+   	} else if((itemXML = ZU.xpath(doiRecord, 'c:crossref/c:report-paper', ns)).length) {
 		// Report Paper
 		// Example: doi: 10.4271/2010-01-0907
 		// http://www.crossref.org/openurl/?pid=zter:zter321&url_ver=Z39.88-2004&rft_id=info:doi/10.4271/2010-01-0907&format=unixref&redirect=false
 		item = new Zotero.Item("report");
 		refXML = ZU.xpath(itemXML, 'c:report-paper_metadata', ns);
+		if (refXML.length==0) {
+			//Example doi: 10.1787/5jzb6vwk338x-en 
+			//http://www.crossref.org/openurl/?pid=zter:zter321&url_ver=Z39.88-2004&&rft_id=info:doi/10.1787/5jzb6vwk338x-en&noredirect=true&format=unixref
+			refXML = ZU.xpath(itemXML, 'c:report-paper_series_metadata', ns);
+			seriesXML = ZU.xpath(refXML, 'c:series_metadata', ns);
+		}
 		metadataXML = refXML;
 		
 		item.reportNumber = ZU.xpathText(refXML, 'c:publisher_item/c:item_number', ns);
+		if (!item.reportNumber) item.reportNumber = ZU.xpathText(refXML, 'c:volume', ns);
 		item.institution = ZU.xpathText(refXML, 'c:publisher/c:publisher_name', ns);
 		item.place = ZU.xpathText(refXML, 'c:publisher/c:publisher_place', ns);
 	} else if((itemXML = ZU.xpath(doiRecord, 'c:crossref/c:book', ns)).length) {
@@ -165,8 +174,7 @@ function processCrossRef(xmlOutput) {
 		var componentType = itemXML[0].hasAttribute("component_type") ? itemXML[0].getAttribute("component_type") : null;
 		
 		var isReference = ["reference", "other"].indexOf(bookType) !== -1
-				&& ["chapter", "reference_entry"].indexOf(componentType);
-		
+				&& ["chapter", "reference_entry"].indexOf(componentType) !==-1;
 		if(bookType === "edited_book" || isReference) {
 			item = new Zotero.Item("bookSection");
 			refXML = ZU.xpath(itemXML, 'c:content_item', ns);
@@ -183,7 +191,6 @@ function processCrossRef(xmlOutput) {
 			} else {
 				metadataXML = ZU.xpath(itemXML, 'c:book_series_metadata', ns);
 				if(!metadataXML.length) metadataXML = ZU.xpath(itemXML, 'c:book_metadata', ns);
-				
 				item.bookTitle = ZU.xpathText(metadataXML, 'c:series_metadata/c:titles[1]/c:title[1]', ns);
 				if(!item.bookTitle) item.bookTitle = ZU.xpathText(metadataXML, 'c:titles[1]/c:title[1]', ns);
 			}
@@ -194,6 +201,10 @@ function processCrossRef(xmlOutput) {
 		} else {
 			item = new Zotero.Item("book");
 			refXML = ZU.xpath(itemXML, 'c:book_metadata', ns);
+			//Sometimes book data is in book_series_metadata
+			// doi: 10.1007/978-1-4419-9164-5
+			//http://www.crossref.org/openurl/?pid=zter:zter321&url_ver=Z39.88-2004&rft_id=info:doi/10.1007/978-1-4419-9164-5&format=unixref&redirect=false
+			if (!refXML.length) refXML = ZU.xpath(itemXML, 'c:book_series_metadata', ns);
 			metadataXML = refXML;
 			seriesXML = ZU.xpath(refXML, 'c:series_metadata', ns);
 		}
@@ -214,23 +225,39 @@ function processCrossRef(xmlOutput) {
 		item.place = ZU.xpathText(metadataXML, 'c:event_metadata/c:conference_location', ns);
 		item.conferenceName = ZU.xpathText(metadataXML, 'c:event_metadata/c:conference_name', ns);
 	}
-	
+
+	else if((itemXML = ZU.xpath(doiRecord, 'c:crossref/c:database', ns)).length) {
+		item = new Zotero.Item("report"); //should be dataset
+		refXML = ZU.xpath(itemXML, 'c:dataset', ns);
+		metadataXML = ZU.xpath(itemXML, 'c:database_metadata', ns);
+	}
+
+
+	item.abstractNote = ZU.xpathText(refXML, 'c:description', ns);
+	item.language = ZU.xpathText(metadataXML, './@language', ns);
 	item.ISBN = ZU.xpathText(metadataXML, 'c:isbn', ns);
 	item.ISSN = ZU.xpathText(metadataXML, 'c:issn', ns);
 	item.publisher = ZU.xpathText(metadataXML, 'c:publisher/c:publisher_name', ns);
 	item.edition = ZU.xpathText(metadataXML, 'c:edition_number', ns);
 	if(!item.volume) item.volume = ZU.xpathText(metadataXML, 'c:volume', ns);
 	
-	parseCreators(refXML, item, "author");
+	parseCreators(refXML, item, (item.itemType == 'bookSection' ? {"editor": null} : "author") );
 	
 	if(seriesXML && seriesXML.length) {
-		parseCreators(refXML, item, {"editor":"seriesEditor"});
+		parseCreators(seriesXML, item, {"editor":"seriesEditor"});
+		item.series = ZU.xpathText(seriesXML, 'c:titles[1]/c:title[1]', ns);
 		item.seriesNumber = ZU.xpathText(seriesXML, 'c:series_number', ns);
+		item.reportType = ZU.xpathText(seriesXML, 'c:titles[1]/c:title[1]', ns);
 	}
-	
-	var pubDateNode = ZU.xpath(refXML, 'c:publication_date', ns);
-	if(!pubDateNode) ZU.xpath(metadataXML, 'c:publication_date', ns);
-	
+	//prefer article to journal metadata and print to other dates
+	var pubDateNode = ZU.xpath(refXML, 'c:publication_date[@media_type="print"]', ns);
+	if(!pubDateNode.length) pubDateNode = ZU.xpath(refXML, 'c:publication_date', ns);
+	if(!pubDateNode.length) pubDateNode = ZU.xpath(metadataXML, 'c:publication_date[@media_type="print"]', ns);
+	if(!pubDateNode.length) pubDateNode = ZU.xpath(metadataXML, 'c:publication_date', ns);
+	//dataset
+	if(!pubDateNode.length) pubDateNode = ZU.xpath(refXML, 'c:database_date/c:publication_date', ns);
+	if(!pubDateNode.length) pubDateNode = ZU.xpath(metaXML, 'c:database_date/c:publication_date', ns);
+
 	if(pubDateNode.length) {
 		var year = ZU.xpathText(pubDateNode[0], 'c:year', ns);
 		var month = ZU.xpathText(pubDateNode[0], 'c:month', ns);
@@ -271,6 +298,16 @@ function processCrossRef(xmlOutput) {
 		}
 	}
 	//Zotero.debug(JSON.stringify(item, null, 4));
+	
+	//check if there are potential issues with character encoding and try to fix it
+	//e.g. 10.1057/9780230391116.0016 (en dash in title is presented as <control><control>â)
+	for(var field in item) {
+		if(typeof item[field] != 'string') continue;
+		//check for control characters that should never be in strings from CrossRef
+		if(/[\u007F-\u009F]/.test(item[field])) {
+			item[field] = decodeURIComponent(escape(item[field]));
+		}
+	}
 	
 	item.complete();
 	return true;
@@ -323,12 +360,54 @@ var testCases = [
 				"attachments": [],
 				"bookTitle": "The Cambridge Companion to George Orwell",
 				"place": "Cambridge",
-				"ISBN": "0521858429, 9780521858427, 0521675073, 9780521675079",
+				"ISBN": "9781139001472",
 				"publisher": "Cambridge University Press",
 				"pages": "201-207",
+				"date": "2007",
 				"DOI": "10.1017/CCOL0521858429.016",
-				"url": "http://cco.cambridge.org/extract?id=ccol0521858429_CCOL0521858429A016",
+				"url": "http://universitypublishingonline.org/ref/id/companions/CBO9781139001472A019",
 				"title": "Why Orwell still matters",
+				"libraryCatalog": "CrossRef"
+			}
+		]
+	},
+	{
+		"type": "search",
+		"input": {
+			"DOI":"10.1057/9780230391116.0016"
+		},
+		"items": [
+			{
+				"itemType": "bookSection",
+				"creators": [
+					{
+						"creatorType": "editor",
+						"firstName": "Claus-Christian W.",
+						"lastName": "Szejnmann"
+					},
+					{
+						"creatorType": "editor",
+						"firstName": "Maiken",
+						"lastName": "Umbach"
+					},
+					{
+						"creatorType": "author",
+						"firstName": "Oliver",
+						"lastName": "Werner"
+					}
+				],
+				"notes": [],
+				"tags": [],
+				"seeAlso": [],
+				"attachments": [],
+				"bookTitle": "Heimat, Region, and Empire",
+				"ISBN": "9780230391116",
+				"publisher": "Palgrave Macmillan",
+				"language": "en",
+				"date": "2012-10-17",
+				"DOI": "10.1017/CCOL0521858429.016",
+				"url": "http://www.palgraveconnect.com/doifinder/10.1057/9780230391116.0016",
+				"title": "Conceptions, Competences and Limits of German Regional Planning during the Four Year Plan, 1936–1940",
 				"libraryCatalog": "CrossRef"
 			}
 		]

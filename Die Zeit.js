@@ -2,14 +2,14 @@
 	"translatorID": "312bbb0e-bfb6-4563-a33c-085445d391ed",
 	"label": "Die Zeit",
 	"creator": "Martin Meyerhoff",
-	"target": "^http://www\\.zeit\\.de/",
+	"target": "^https?://www\\.zeit\\.de/",
 	"minVersion": "1.0",
 	"maxVersion": "",
 	"priority": 100,
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2013-09-22 20:52:10"
+	"lastUpdated": "2014-04-03 16:49:40"
 }
 
 /*
@@ -94,16 +94,14 @@ function scrape(doc, url) {
 
 	// Date
 	var date_XPath = '//meta[contains(@name, "dats")]';
-	var date2_XPath = '//span[@class="articlemeta-date"]';	
+	var date2_XPath = '//span[@class="articlemeta-datetime"]';	
 	if (doc.evaluate(date_XPath, doc, null, XPathResult.ANY_TYPE, null).iterateNext() ){ 
 		var date = doc.evaluate(date_XPath, doc, null, XPathResult.ANY_TYPE, null).iterateNext().content;
 		date = date.split("T")[0];
 		newItem.date = date;
 	} else if (doc.evaluate(date2_XPath, doc, null, XPathResult.ANY_TYPE, null).iterateNext() ){ 
-
-	var date = ZU.xpathText(doc, date2_XPath);
-		Z.debug(date)
-		newItem.date = date;
+		var date = ZU.xpathText(doc, date2_XPath)
+		if (date) newItem.date = date.replace(/\d{1,2}:\d{2}\sUhr/, "").trim();
 	}
 
 	
@@ -137,16 +135,12 @@ function scrape(doc, url) {
 }
 
 function doWeb(doc, url) {
-	var namespace = doc.documentElement.namespaceURI;
-	var nsResolver = namespace ? function(prefix) {
-		if (prefix == 'x') return namespace; else return null;
-	} : null;
 	var articles = new Array();
 	
 	if (detectWeb(doc, url) == "multiple") {
 		var items = new Object();
 		
-		var titles = doc.evaluate("//h4/a|//h2/a", doc, nsResolver, XPathResult.ANY_TYPE, null);
+		var titles = doc.evaluate("//h4/a|//h2/a", doc, null, XPathResult.ANY_TYPE, null);
 		
 		var next_title;
 		while (next_title = titles.iterateNext()) {
@@ -154,17 +148,14 @@ function doWeb(doc, url) {
 			items[next_title.href] = next_title.textContent;
 			}
 		}
-			Zotero.selectItems(items, function (items) {
+		Zotero.selectItems(items, function (items) {
 			if (!items) {
 				return true;
 			}
 			for (var i in items) {
 				articles.push(i);
 			}
-			Zotero.Utilities.processDocuments(articles, scrape, function () {
-				Zotero.done();
-			});
-			Zotero.wait();	
+			Zotero.Utilities.processDocuments(articles, scrape);
 		});
 	} 
 	 else {
@@ -181,7 +172,7 @@ var testCases = [
 				"creators": [],
 				"notes": [],
 				"tags": [
-					"Libyen",
+					"Muammar al-Gaddafi",
 					"Muammar al-Gaddafi",
 					"Mustafa Abdel Dschalil",
 					"Stadt",
@@ -198,7 +189,7 @@ var testCases = [
 				"url": "http://www.zeit.de/politik/ausland/2011-09/libyen-bani-walid",
 				"title": "Libyen: Rebellen bereiten Angriff auf Bani Walid vor",
 				"date": "4. September 2011",
-				"abstractNote": "Die von Gadhafi-Anhängern geführte Stadt ist von Rebellentruppen eingekreist. Gespräche über eine friedliche Übergabe sind gescheitert, ein Angriff steht offenbar bevor.",
+				"abstractNote": "Die von Gadhafi-Anhängern geführte Stadt ist von Rebellentruppen eingekreist. Gespräche über eine friedliche Übergabe sind gescheitert, ein Angriff steht offenbar bevor. von AFP und dpa",
 				"publicationTitle": "Die Zeit",
 				"section": "Ausland",
 				"libraryCatalog": "Die Zeit",

@@ -9,7 +9,7 @@
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsbv",
-	"lastUpdated": "2013-12-16 00:07:54"
+	"lastUpdated": "2014-04-03 19:53:34"
 }
 
 /*
@@ -33,7 +33,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 function getItems(doc, url) {
 	//Since you can perform a cross-site search, make sure we have links that
 	//we can scrape
-	var host = url.match(/^http:\/\/(?:[^/]+\.)?([^\.\/]+\.[^\.\/]+)(?:\/|$)/i);
+	var host = url.match(/^https?:\/\/(?:[^/]+\.)?([^\.\/]+\.[^\.\/]+)(?:\/|$)/i);
 	if(!host) return;
 	host = host[1];
 	return ZU.xpath(doc, '//table[@class="articles-feed" or @id="articles-list"]\
@@ -418,7 +418,7 @@ var testCases = [
 				"ISSN": "1752-153X",
 				"language": "en",
 				"url": "http://journal.chemistrycentral.com/content/5/1/5/abstract",
-				"abstractNote": "Numerous popular media sources have developed lists of\nPMID: 21299842",
+				"abstractNote": "Numerous popular media sources have developed lists of \"Super Foods\" and, more recently, \"Super Fruits\". Such distinctions often are based on the antioxidant capacity and content of naturally occurring compounds such as polyphenols within those whole fruits or juices of the fruit which may be linked to potential health benefits. Cocoa powder and chocolate are made from an extract of the seeds of the fruit of the Theobroma cacao tree. In this study, we compared cocoa powder and cocoa products to powders and juices derived from fruits commonly considered \"Super Fruits\".\nPMID: 21299842",
 				"libraryCatalog": "journal.chemistrycentral.com",
 				"extra": "PMID: 21299842"
 			}

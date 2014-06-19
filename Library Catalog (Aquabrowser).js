@@ -197,10 +197,10 @@ var testCases = [
 					}
 				],
 				"tags": [
-					"Prayer in literature.",
-					"Prayers, Medieval.",
+					"German literature -- Middle High German, 1050-1500 -- History and criticism.",
 					"German literature -- Old High German, 750-1050 -- History and criticism.",
-					"German literature -- Middle High German, 1050-1500 -- History and criticism."
+					"Prayer in literature.",
+					"Prayers, Medieval."
 				],
 				"seeAlso": [],
 				"attachments": [],

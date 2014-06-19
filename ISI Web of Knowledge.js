@@ -9,7 +9,7 @@
 	"inRepository": true,
 	"translatorType": 5,
 	"browserSupport": "gcsv",
-	"lastUpdated": "2014-01-15 08:59:36"
+	"lastUpdated": "2014-04-10 11:26:32"
 }
 
 function detectWeb(doc, url) {
@@ -86,6 +86,7 @@ function getOutputForm(doc) {
 }
 
 function importISIRecord(text) {
+	Z.debug(text);
 	var importer = Zotero.loadTranslator("import");
 	importer.setTranslator("594ebe3c-90a0-4830-83bc-9502825a6810");
 	importer.setString(text);
@@ -112,10 +113,15 @@ function importISIRecord(text) {
 function fetchIds(ids, doc) {
 	var outputForm = getOutputForm(doc);
 	var postData = getHiddenValues(outputForm);
-	var filters = 'USAGEIND RESEARCHERID ACCESSION_NUM FUNDING SUBJECT_CATEGORY ' + 
-		'JCR_CATEGORY LANG IDS PAGEC SABBR CITREFC ISSN PUBINFO KEYWORDS ' +
-		'CITTIMES ADDRS CONFERENCE_SPONSORS DOCTYPE ABSTRACT CONFERENCE_INFO ' +
-		'SOURCE TITLE AUTHORS  ';
+	var filters = 'USAGEIND RESEARCHERID ACCESSION_NUM FUNDING SUBJECT_CATEGORY '
+		+ 'JCR_CATEGORY LANG IDS PAGEC SABBR CITREFC ISSN PUBINFO KEYWORDS '
+		+ 'CITTIMES ADDRS CONFERENCE_SPONSORS DOCTYPE ABSTRACT CONFERENCE_INFO '
+		+ 'SOURCE TITLE AUTHORS '
+		//additional fields from INSPEC
+		+ 'ADDRESS AUTHORS_EDITORS AUTHORSIDENTIFIERS CLASSIFICATION_CODES '
+		+ 'CONFERENCE_SPONSORS DESCRIPTORS IDENTIFYING_CODES IMAGES '
+		+ 'INVENTORS_ASSIGNEES IPC NUM_OF_REF PATENT_INFO SPONSORS TRANSLATORS '
+		+ 'TREATMENT UNCONTROLLED_TERMS';
 	postData['value(record_select_type)'] = 'selrecords';
 	postData['markFrom'] = '';
 	postData['markTo'] = '';
@@ -248,7 +254,7 @@ function processTag(item, field, content) {
 		item.issue = content;
 	} else if (field == "UT") {
 		item.extra += content;
-	} else if (field == "BP") {
+	} else if (field == "BP" || field == "PS") { // not sure why this varies
 		item.pages = content;
 	} else if (field == "EP") {
 		item.pages += "-" + content;
@@ -400,7 +406,7 @@ function doImport(text) {
 			if(tag == "AU" || tag == "AF" || tag == "BE") {
 				//Z.debug(rawLine);
 				// preserve line endings for AU fields
-				data += rawLine.replace(/^  /,"\n");
+				data += "\n" + rawLine;
 			} else if(tag) {
 				// otherwise, concatenate and avoid extra spaces
 				if(data[data.length-1] == " " || rawLine[0] == " ") {
@@ -994,6 +1000,11 @@ var testCases = [
 					{
 						"firstName": "Cassandra A.",
 						"lastName": "Medvedeff",
+						"creatorType": "author"
+					},
+					{
+						"firstName": "Anne E.",
+						"lastName": "Hershey",
 						"creatorType": "author"
 					}
 				],

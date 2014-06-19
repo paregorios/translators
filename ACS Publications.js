@@ -9,7 +9,7 @@
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2013-05-06 00:30:44"
+	"lastUpdated": "2014-06-01 17:29:05"
 }
 
 function getSearchResults(doc) {
@@ -23,7 +23,7 @@ function getDoi(url) {
 		if(doi.indexOf("prevSearch") != -1) {
 			doi = doi.substring(0,doi.indexOf("?"));
 		}
-		return doi;
+		return decodeURIComponent(doi);
 	}
 }
 
@@ -80,7 +80,7 @@ function detectWeb(doc, url) {
 	if(doc.getElementById('articleListHeader_selectAllToc')
 		&& getSearchResults(doc).length) {
 		return "multiple";
-	} else if(doc.getElementById('articleHead') && getDoi(url)) {
+	} else if(getDoi(url)) {
 		var h2 = ZU.xpathText(doc, '//div[@id="articleHead"]/h2');
 		if(h2 && h2.indexOf("Chapter") !=-1) {
 			return "bookSection";
@@ -161,7 +161,8 @@ function scrape(items, opts){
 	//get citation export page's source code;
 	for(var i=0, n=items.length; i<n; i++) {
 		(function(item) {
-			var url = opts.host + 'action/showCitFormats?doi=' + item.doi;
+			var url = opts.host + 'action/showCitFormats?doi=' + encodeURIComponent(item.doi);
+			//Z.debug(url);
 			ZU.doGet(url, function(text){
 				//Z.debug(text)
 				//get the exported RIS file name;
@@ -177,7 +178,7 @@ function scrape(items, opts){
 function processCallback(fetchItem, opts, downloadFileName) {
 		var baseurl = "http://pubs.acs.org/action/downloadCitation";
 		var doi = fetchItem.doi;
-		var post = "doi=" + doi + "&downloadFileName=" + downloadFileName
+		var post = "doi=" + encodeURIComponent(doi) + "&downloadFileName=" + encodeURIComponent(downloadFileName)
 			+ "&include=abs&format=refman&direct=on"
 			+ "&submit=Download+article+citation+data";
 		ZU.doPost(baseurl, post, function(text){
@@ -369,19 +370,78 @@ var testCases = [
 				"date": "January 1, 2011",
 				"volume": "1071",
 				"numberOfVolumes": "0",
-				"DOI": "10.1021/bk-2011-1071.ch005",
+				"seriesNumber": "1071",
 				"url": "http://dx.doi.org/10.1021/bk-2011-1071.ch005",
 				"abstractNote": "Natural organic matter (NOM) is an inherently complex mixture of polyfunctional organic molecules. Because of their universality and chemical reversibility, oxidation/reductions (redox) reactions of NOM have an especially interesting and important role in geochemistry. Variabilities in NOM composition and chemistry make studies of its redox chemistry particularly challenging, and details of NOM-mediated redox reactions are only partially understood. This is in large part due to the analytical difficulties associated with NOM characterization and the wide range of reagents and experimental systems used to study NOM redox reactions. This chapter provides a summary of the ongoing efforts to provide a coherent comprehension of aqueous redox chemistry involving NOM and of techniques for chemical characterization of NOM. It also describes some attempts to confirm the roles of different structural moieties in redox reactions. In addition, we discuss some of the operational parameters used to describe NOM redox capacities and redox states, and describe nomenclature of NOM redox chemistry. Several relatively facile experimental methods applicable to predictions of the NOM redox activity and redox states of NOM samples are discussed, with special attention to the proposed use of fluorescence spectroscopy to predict relevant redox characteristics of NOM samples.",
 				"pages": "85-111",
-				"section": "5",
 				"title": "Redox Chemistry and Natural Organic Matter (NOM): Geochemists? Dream, Analytical Chemists? Nightmare",
 				"bookTitle": "Aquatic Redox Chemistry",
 				"series": "ACS Symposium Series",
 				"ISBN": "0-8412-2652-0",
 				"publisher": "American Chemical Society",
 				"libraryCatalog": "ACS Publications",
-				"accessDate": "CURRENT_TIMESTAMP",
 				"shortTitle": "Redox Chemistry and Natural Organic Matter (NOM)"
+			}
+		]
+	},
+	{
+		"type": "web",
+		"url": "http://pubs.acs.org/doi/abs/10.1021/jp000606%2B",
+		"items": [
+			{
+				"itemType": "journalArticle",
+				"creators": [
+					{
+						"lastName": "Schlag",
+						"firstName": "E. W.",
+						"creatorType": "author"
+					},
+					{
+						"lastName": "Sheu",
+						"firstName": "Sheh-Yi",
+						"creatorType": "author"
+					},
+					{
+						"lastName": "Yang",
+						"firstName": "Dah-Yen",
+						"creatorType": "author"
+					},
+					{
+						"lastName": "Selzle",
+						"firstName": "H. L.",
+						"creatorType": "author"
+					},
+					{
+						"lastName": "Lin",
+						"firstName": "S. H.",
+						"creatorType": "author"
+					}
+				],
+				"notes": [],
+				"tags": [],
+				"seeAlso": [],
+				"attachments": [
+					{
+						"title": "ACS Full Text PDF w/ Links",
+						"mimeType": "application/pdf"
+					},
+					{
+						"title": "ACS Full Text Snapshot",
+						"mimeType": "text/html"
+					}
+				],
+				"DOI": "10.1021/jp000606+",
+				"journalAbbreviation": "J. Phys. Chem. B",
+				"issue": "32",
+				"abstractNote": "We have derived phase space and diffusion theories for a new hopping model of charge transport in polypeptides and thence for distal chemical kinetics. The charge is transferred between two carbamide groups on each side of the Cα atom hinging two amino acid groups. When the torsional angles on the hinge approach a certain region of the Ramachandran plot, the charge transfer has zero barrier height and makes charge transfer the result of strong electronic correlation. The mean first passage time calculated from this analytic model of some 164 fs is in reasonable agreement with prior molecular dynamics calculation of some 140 fs and supports this new bifunctional model for charge transport and chemical reactions in polypeptides.",
+				"ISSN": "1520-6106",
+				"url": "http://dx.doi.org/10.1021/jp000606+",
+				"libraryCatalog": "ACS Publications",
+				"title": "Theory of Charge Transport in Polypeptides",
+				"date": "August 1, 2000",
+				"publicationTitle": "The Journal of Physical Chemistry B",
+				"pages": "7790-7794",
+				"volume": "104"
 			}
 		]
 	}

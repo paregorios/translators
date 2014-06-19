@@ -12,7 +12,7 @@
 	"inRepository": true,
 	"translatorType": 1,
 	"browserSupport": "gcs",
-	"lastUpdated": "2013-12-17 23:23:38"
+	"lastUpdated": "2014-03-11 13:44:24"
 }
 
 /*
@@ -137,6 +137,9 @@ function handleCreators(newItem, creators, creatorType) {
 					creator.firstName = getFirstResults(creators[i],
 						[n.foaf+"givenName", n.foaf+"firstName",
 						n.foaf+"givenname"], true);	//unofficial
+				   	 if (!creator.firstName){
+						creator.fieldMode=1;
+					}
 					creator.creatorType = creatorType;
 					newItem.creators.push(creator);
 				}
@@ -367,14 +370,16 @@ function detectType(newItem, node, ret) {
 	
 	// zotero:itemType, zotero:type
 	type = getFirstResults(node, [n.z+"itemType", n.z+"type"], true);
-	if(type && Zotero.Utilities.itemTypeExists(type)) {
+	if(type && isNaN(parseInt(type)) //itemTypeExists also takes item type IDs. We don't want to consider those
+		&& ZU.itemTypeExists(type)
+	) {
 		t.zotero = type;
 	}
 
 	// dc:type, dcterms:type
 	type = getFirstResults(node, [n.dc+"type", n.dc1_0+"type", n.dcterms+"type"], true);
 	if(type) {
-		if(Zotero.Utilities.itemTypeExists(type)) {
+		if(isNaN(parseInt(type)) && ZU.itemTypeExists(type)) {
 			t.dc = type;
 		} else {
 			//on eprints the type fields are often in the form "Journal Article", "Conference Item" etc.

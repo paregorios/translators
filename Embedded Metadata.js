@@ -9,7 +9,7 @@
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2013-12-23 02:48:24"
+	"lastUpdated": "2014-04-24 05:42:40"
 }
 
 /*
@@ -70,6 +70,9 @@ var HIGHWIRE_MAPPINGS = {
 	"citation_abstract_html_url"
 	"citation_fulltext_html_url"
 	"citation_pmid"
+	"citation_online_date"
+	"citation_year"
+	"citation_keywords"
 */
 };
 
@@ -151,7 +154,7 @@ function getPrefixes(doc) {
 }
 
 function getContentText(doc, name, strict) {
-	var xpath = '//x:meta[' +
+	var xpath = '/x:html/x:head/x:meta[' +
 		(strict?'@name':
 			'substring(@name, string-length(@name)-' + (name.length - 1) + ')') +
 		'="'+ name +'"]/';
@@ -159,7 +162,7 @@ function getContentText(doc, name, strict) {
 }
 
 function getContent(doc, name, strict) {
-	var xpath = '//x:meta[' +
+	var xpath = '/x:html/x:head/x:meta[' +
 		(strict?'@name':
 			'substring(@name, string-length(@name)-' + (name.length - 1) + ')') +
 		'="'+ name +'"]/';
@@ -210,7 +213,7 @@ function detectWeb(doc, url) {
 function init(doc, url, callback, forceLoadRDF) {
 	getPrefixes(doc);
 
-	var metaTags = doc.getElementsByTagName("meta");
+	var metaTags = doc.head.getElementsByTagName("meta");
 	Z.debug("Embedded Metadata: found " + metaTags.length + " meta tags.");
 	if(forceLoadRDF /* check if this is called from doWeb */ && !metaTags.length) {
 		if(doc.head) {
@@ -241,9 +244,7 @@ function init(doc, url, callback, forceLoadRDF) {
 		for(var j=0, m=tags.length; j<m; j++) {
 			var tag = tags[j];
 			// We allow three delimiters between the namespace and the property
-			var delimIndex = tag.indexOf('.');
-			if(delimIndex === -1) delimIndex = tag.indexOf(':');
-			if(delimIndex === -1) delimIndex = tag.indexOf('_');
+			var delimIndex = tag.search(/[.:_]/);
 			//if(delimIndex === -1) continue;
 
 			var prefix = tag.substr(0, delimIndex).toLowerCase();
@@ -420,9 +421,20 @@ function addHighwireMetadata(doc, newItem) {
 
 	//Deal with tags in a string
 	//we might want to look at the citation_keyword metatag later
-	if(!newItem.tags || !newItem.tags.length)
-		 newItem.tags = getContent(doc, 'citation_keywords')
-		 					.map(function(t) { return t.textContent; });
+	if(!newItem.tags || !newItem.tags.length) {
+		var tags = getContent(doc, 'citation_keywords');
+		newItem.tags = [];
+		for(var i=0; i<tags.length; i++) {
+			var tag = tags[i].textContent.trim();
+			if(tag) {
+				var splitTags = tag.split(';');
+				for(var j=0; j<splitTags.length; j++) {
+					if(!splitTags[j].trim()) continue;
+					newItem.tags.push(splitTags[j].trim());
+				}
+			}
+		}
+	}
 
 	//sometimes RDF has more info, let's not drop it
 	var rdfPages = (newItem.pages)? newItem.pages.split(/\s*-\s*/) : new Array();
@@ -434,8 +446,13 @@ function addHighwireMetadata(doc, newItem) {
 		newItem.pages = firstpage +
 			( ( lastpage && ( lastpage = lastpage.trim() ) )?'-' + lastpage : '' );
 	}
-
-
+	
+	//fall back to some other date options
+	if(!newItem.date) {
+		newItem.date = getContentText(doc, 'citation_online_date')
+			|| getContentText(doc, 'citation_year');
+	}
+	
 	//prefer ISSN over eISSN
 	var issn = getContentText(doc, 'citation_issn') ||
 			getContentText(doc, 'citation_eIssn');
@@ -590,8 +607,24 @@ function getAuthorFromByline(doc, newItem) {
 		actualByline = false;
 		var parentLevel = 1;
 		var skipList = [];
-		var titleXPath = './/*[normalize-space(translate(text(),"\u00a0"," "))="'
-			+ newItem.title.replace('"', '\\"') + '"]';
+		
+		// Wrap title in quotes so we can use it in the xpath
+		var xpathTitle = newItem.title;
+		if(xpathTitle.indexOf('"') != -1) {
+			if(xpathTitle.indexOf("'") == -1) {
+				// We can just use single quotes then
+				xpathTitle = "'" + xpathTitle + "'";
+			} else {
+				// Escaping double quotes in xpaths is really hard
+				// Solution taken from http://kushalm.com/the-perils-of-xpath-expressions-specifically-escaping-quotes
+				xpathTitle = 'concat("' + xpathTitle.replace(/"+/g, '",\'$&\', "') + '")';
+			}
+		} else {
+			xpathTitle = '"' + xpathTitle + '"';
+		}
+		
+		var titleXPath = './/*[normalize-space(translate(text(),"\u00a0"," "))='
+			+ xpathTitle + ']';
 		Z.debug("Looking for title using: " + titleXPath);
 		while(!actualByline && bylines.length != skipList.length && parentLevel < 5) {
 			Z.debug("Parent level " + parentLevel);
@@ -1113,13 +1146,13 @@ var testCases = [
 				],
 				"notes": [],
 				"tags": [
-					"Salon.com",
-					"LA Review of Books",
-					"science fiction",
-					"Junot Diaz",
 					"Dominican Republic",
 					"Drown",
-					"Rafael Trujillo"
+					"Junot Diaz",
+					"LA Review of Books",
+					"Rafael Trujillo",
+					"Salon.com",
+					"science fiction"
 				],
 				"seeAlso": [],
 				"attachments": [
@@ -1130,8 +1163,6 @@ var testCases = [
 				"title": "Junot Díaz: My stories come from trauma",
 				"url": "http://www.salon.com/2012/10/10/junot_diaz_my_stories_come_from_trauma/",
 				"abstractNote": "The effervescent author of \"This is How You Lose Her\" explains the darkness coursing through his fiction",
-				"libraryCatalog": "www.salon.com",
-				"accessDate": "CURRENT_TIMESTAMP",
 				"shortTitle": "Junot Díaz"
 			}
 		]
@@ -1167,7 +1198,6 @@ var testCases = [
 				"publicationTitle": "The New Yorker",
 				"url": "http://www.newyorker.com/online/blogs/backissues/2013/06/window-washers-at-the-hearst-tower.html",
 				"abstractNote": "Rescuers successfully retrieved two maintenance workers at the Hearst Tower, in Midtown, who had become trapped on their scaffold.",
-				"date": "10/10/2008",
 				"libraryCatalog": "www.newyorker.com",
 				"accessDate": "CURRENT_TIMESTAMP"
 			}

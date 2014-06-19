@@ -2,14 +2,14 @@
 	"translatorID": "87766765-919e-4d3b-9071-3dd7efe984c8",
 	"label": "Revues.org",
 	"creator": "Aurimas Vinckevicius, Pierre-Alain Mignot, and Michael Berkowitz",
-	"target": "^http://.*\\.revues\\.org",
+	"target": "^https?://.*\\.revues\\.org",
 	"minVersion": "3.0",
 	"maxVersion": "",
 	"priority": 100,
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2013-04-05 23:44:55"
+	"lastUpdated": "2014-04-03 18:55:44"
 }
 
 function detectWeb(doc, url) {
@@ -67,7 +67,12 @@ function scrape(doc, url) {
 				item.creators.push(
 					ZU.cleanAuthor(trans[i].textContent, 'translator', true));
 			}
-
+			//fix all caps for author last names
+			for (var i=0; i<item.creators.length; i++){
+				if (item.creators[i].lastName == item.creators[i].lastName.toUpperCase()){
+					item.creators[i].lastName = ZU.capitalizeTitle(item.creators[i].lastName.toLowerCase(), true)
+				}
+			}
 			//set abstract and keywords based on preferred locale
 			var locale = doc.cookie.match(/\blanguage=([a-z]{2})/i);
 			//default to french if not set
@@ -191,16 +196,16 @@ var testCases = [
 						"title": "Snapshot"
 					}
 				],
+				"title": "Chapitre 2 – L’histoire de La Paz et de la ladera ouest",
 				"rights": "© The Graduate Institute | Geneva",
+				"publisher": "Institut de hautes études internationales et du développement",
+				"date": "2012/02/03",
 				"url": "http://iheid.revues.org/412?lang=fr",
 				"abstractNote": "L’histoire de la ladera ouest de La Paz s’insère dans l’histoire générale de La Paz, à son tour influencée par (et influençant) l’histoire nationale bolivienne. La compréhension du processus de construction des risques, sans laquelle il est impossible de comprendre leur régulation sociale, est en grande partie le produit de l’histoire. En effet, l’approche diachronique semble être un moyen indispensable d’objectivation du social, inspiré ainsi de la sociologie « inséparablement structurale et génétique » (Wacquant 1995) de Pierre Bourdieu, et plus précisément ici, elle joue un rôle fondamental dans la recherche des causes, voire des « causes-racines » de la progression de la vulnérabilité (Wisner et al. 2004). On s’intéressera non seulement aux conditions de possibilité de l’établissement en zone à risque, mais également à la manière dont celle-ci s’est effectivement réalisée.Faire l’histoire de la ladera ouest, c’est construire l’histoire d’un espace, dans la lignée de l’école des annales (Braudel 1990), rendant solidaires l’une de l’autre l’histoire et la géographie. Mais c’est également s’intéresser à un objet inédit – l’histoire des laderas n’a jamais été écrite comme telle, et l’histoire de La Paz correspond souvent à celle du centre-ville. On peut y déceler plusieurs raisons. D’abord, le désintérêt général envers un espace peuplé par des populations indigènes, à faible capital économique, politique et culturel, et dont l’urbanisation constitue dans l’imaginaire collecti",
 				"language": "fr",
 				"ISBN": "978-2-940415-91-5",
 				"libraryCatalog": "iheid.revues.org",
-				"title": "Chapitre 2 – L’histoire de La Paz et de la ladera ouest",
-				"bookTitle": "Collections électroniques de l’Institut de hautes études internationales et du développement. Graduate Institute Publications Online",
-				"publisher": "Institut de hautes études internationales et du développement",
-				"date": "2012/02/03"
+				"bookTitle": "Collections électroniques de l’Institut de hautes études internationales et du développement. Graduate Institute Publications Online"
 			}
 		]
 	},
@@ -252,12 +257,12 @@ var testCases = [
 				"publicationTitle": "e-Spania. Revue interdisciplinaire d’études hispaniques médiévales et modernes",
 				"rights": "© e-Spania",
 				"issue": "5",
-				"date": "2012/12/16",
+				"date": "2008/02/01",
 				"DOI": "10.4000/e-spania.12303",
+				"ISSN": "1951-6169",
 				"url": "http://e-spania.revues.org/12303?lang=fr",
 				"abstractNote": "Le testament d’Elvire livre de précieuses informations sur la réalité historique de l’infantat : son implantation, la composition de ses biens, ses évolutions, les formes de son acquisition et de sa transmission, sa fonction politique. Mais il nous renseigne aussi sur une infante de niveau moyen, sur son cadre de vie, son entourage, ses activités, les réseaux de son pouvoir et même sur sa foi.",
 				"language": "fr",
-				"ISSN": "1951-6169",
 				"libraryCatalog": "e-spania.revues.org"
 			}
 		]
@@ -305,17 +310,17 @@ var testCases = [
 						"title": "Snapshot"
 					}
 				],
+				"title": "Le testament d’Elvire (Tábara, 1099)",
+				"publicationTitle": "e-Spania. Revue interdisciplinaire d’études hispaniques médiévales et modernes",
 				"rights": "© e-Spania",
 				"issue": "5",
+				"date": "2008/02/01",
 				"DOI": "10.4000/e-spania.12303",
+				"ISSN": "1951-6169",
 				"url": "http://e-spania.revues.org/12303?lang=es",
 				"abstractNote": "El testamento de Elvira brinda una preciosísima información sobre la realidad del infantazgo : su extensión, la composición de sus bienes, sus evoluciones, las formas de su adquisición y transmisión, su papel político. También nos informa sobre una infanta de nivel mediano, sobre el marco de su vida, su entorno personal, sus actividades, la red de sus influencias e incluso sobre su fe.",
 				"language": "fr",
-				"ISSN": "1951-6169",
-				"libraryCatalog": "e-spania.revues.org",
-				"title": "Le testament d’Elvire (Tábara, 1099)",
-				"publicationTitle": "e-Spania. Revue interdisciplinaire d’études hispaniques médiévales et modernes",
-				"date": "2012/12/16"
+				"libraryCatalog": "e-spania.revues.org"
 			}
 		]
 	},
@@ -397,7 +402,7 @@ var testCases = [
 				"rights": "© The Graduate Institute|Geneva - http://creativecommons.org/licenses/by-nc/3.0/",
 				"issue": "1",
 				"pages": "11-36",
-				"date": "2010/03/11",
+				"date": "2010/03/01",
 				"DOI": "10.4000/poldev.135",
 				"ISSN": "1663-9375",
 				"url": "http://poldev.revues.org/135",

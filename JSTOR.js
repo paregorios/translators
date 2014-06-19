@@ -9,7 +9,7 @@
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsib",
-	"lastUpdated": "2014-02-02 20:03:27"
+	"lastUpdated": "2014-06-01 19:55:01"
 }
 
 function detectWeb(doc, url) {
@@ -99,8 +99,8 @@ function doWeb(doc, url) {
 			} else if (currTitleElmt.href) {
 				var jid = currTitleElmt.href.match(/(?:stable|pss)\/([a-z]*?\d+)/)[1];
 			} else {
-				//for items like Reviews without linked titles
-				var jid = ZU.xpathText(currTitleElmt, './a/@href').match(/10\.2307(\%2F|\/)(\d+)/)[2];
+				//this looks like it's the default now. Not sure how common the others are.
+				var jid = ZU.xpathText(currTitleElmt, './a/@href').match(/10\.2307(\%2F|\/)([^?]+)/)[2];
 				//Z.debug(jid)
 			}
 			
@@ -161,7 +161,6 @@ function first(set, next) {
 		//M1 is mostly useless and sometimes ends up in the issue field
 		//we can use it to check if the article is a review though
 		var review = text.search(/^M1\s+-\s+ArticleType:\s*book-review/m) !== -1;
-		text = text.replace(/^M1\s+-.*?\n/mg, '');
 		
 		translator.setString(text);
 		translator.setHandler("itemDone", function(obj, item) {
@@ -199,8 +198,8 @@ function first(set, next) {
 				item.attachments.push({url:pdfurl, title:"JSTOR Full Text PDF", mimeType:"application/pdf"});
 			}
 			var matches;
-			if (matches = item.ISSN.match(/([0-9]{4})([0-9]{3}[0-9Xx])/)) {
-				item.ISSN = matches[1] + '-' + matches[2];
+			if (item.ISSN) {
+				item.ISSN = ZU.cleanISSN(item.ISSN);
 			}
 			//reviews don't have titles in RIS - we get them from the item page
 			if (!item.title && review){
@@ -227,7 +226,14 @@ function first(set, next) {
 			}
 		});
 			
-		translator.translate();
+		translator.getTranslatorObject(function (trans) {
+			trans.options.fieldMap = {
+				'M1': {
+					'__default': '__ignore'
+				}
+			}
+			trans.doImport();	
+		});
 	});
 }
 	
@@ -445,11 +451,6 @@ var testCases = [
 	},
 	{
 		"type": "web",
-		"url": "http://www.jstor.org/action/doAdvancedSearch?q0=solomon+criminal+justice&f0=all&c1=AND&q1=&f1=all&acc=on&wc=on&fc=off&re=on&sd=&ed=&la=&pt=&isbn=&dc.History=History&dc.SlavicStudies=Slavic+Studies&Search=Search",
-		"items": "multiple"
-	},
-	{
-		"type": "web",
 		"url": "http://www.jstor.org/betasearch?Query=labor+market&ac=0&si=0",
 		"items": "multiple"
 	},
@@ -502,6 +503,11 @@ var testCases = [
 				"shortTitle": "Coauthorship Dynamics and Knowledge Capital"
 			}
 		]
+	},
+	{
+		"type": "web",
+		"url": "http://www.jstor.org/action/doBasicSearch?Query=%28solomon+criminal+justice%29+AND+disc%3A%28slavicstudies-discipline+OR+history-discipline%29&prq=%28criminal+justice%29+AND+disc%3A%28slavicstudies-discipline+OR+history-discipline%29&hp=25&acc=on&wc=on&fc=off&so=rel&racc=off",
+		"items": "multiple"
 	}
 ]
 /** END TEST CASES **/
