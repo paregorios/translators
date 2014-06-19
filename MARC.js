@@ -74,6 +74,39 @@ function pullOCLC(text) {
 	}
 }
 
+function pullPages(text) {
+	if (text == "v") {
+		return text;
+	}
+	var pullRe = /(page|p\.|leaves|leaf|plate|\s+p\s+)/;
+	var m = pullRe.exec(text);
+	if(m) {
+		return text;
+	}
+	// try to capture cases where we only have roman numerals, without pulling in volume info
+	var pullRe = /[ivx]+/;
+	var m = pullRe.exec(text);
+	if(m) {
+		if(m[0] == "v") {
+			var pullRe = /v[\s,]/;
+			var m = pullRe.exec(text);
+			if(m) {
+				return text;
+			}
+		} else {
+			return text;
+		}
+	}
+}
+
+function pullVolumes(text) {
+	var pullRe = /volume|v\./;
+	var m = pullRe.exec(text);
+	if(m) {
+		return text;
+	}
+}
+
 // language extraction
 function pullLanguage(text) {
 	return text
@@ -441,9 +474,9 @@ record.prototype.translate = function(item) {
 		// Extract ISSNs
 		this._associateDBField(item, "022", "a", "ISSN", pullISBN);
 		// Extract OCLCs
-		this._associateDBField(item, "035", "a", "extra", pullOCLC)
+		this._associateDBField(item, "035", "a", "extra", pullOCLC);
 		// Extract languages
-		this._associateDBField(item, "041", "a", "language", pullLanguage)
+		this._associateDBField(item, "041", "ah", "language");
 		// Extract creators
 		this._associateDBField(item, "100", "a", "creator", author, "author", true);
 		this._associateDBField(item, "110", "a", "creator", corpAuthor, "author");
@@ -494,7 +527,7 @@ record.prototype.translate = function(item) {
 		// general note
 		this._associateNotes(item, "500", "a");
 		// formatted contents (table of contents)
-		this._associateNotes(item, "505", "art");
+		this._associateNotes(item, "505", "artg");
 		// summary
 		this._associateNotes(item, "520", "ab");
 		// biographical or historical data
@@ -517,7 +550,9 @@ record.prototype.translate = function(item) {
 		// Extract year
 		this._associateDBField(item, "260", "c", "date", pullNumber);
 		// Extract pages
-		this._associateDBField(item, "300", "a", "numPages", pullNumber);
+		this._associateDBField(item, "300", "a", "numPages", pullPages);
+		// Extract volumes
+		this._associateDBField(item, "300", "a", "numberOfVolumes", pullVolumes);
 		// Extract series and series number
 		// The current preference is 490
 		this._associateDBField(item, "490", "a", "series");
@@ -535,6 +570,11 @@ record.prototype.translate = function(item) {
 		this._associateDBField(item, "090", "ab", "callNumber");
 		this._associateDBField(item, "099", "a", "callNumber");
 		this._associateDBField(item, "852", "khim", "callNumber");
+		// Extract other location information (for ISAW/NYU)
+		this._associateDBField(item, "852", "bae", "archive");
+		this._associateDBField(item, "852", "c", "archiveLocation");
+		this._associateDBField(item, "852", "a", "libraryCatalog");
+
 		// Extract URL for electronic resources
 		this._associateDBField(item, "245", "h", "medium")
 		if (item.medium == "electronic resource") this._associateDBField(item, "856", "u", "url");
